@@ -1,0 +1,204 @@
+<!DOCTYPE html><html><head><meta charset='utf-8'/>
+<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0"/>
+<title>ANIKI RUN</title>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta property="og:image" content="ss.png"/>
+<link rel="apple-touch-icon" href="icon.png"/>
+<script src="fukuno.js"></script>
+<script>'use strict';
+window.onload = function() {
+	var canvas = get("canvas");
+	var g = getContext(canvas);
+	
+	var STATE_TITLE = 0;
+	var STATE_GAME = 1;
+	var STATE_MISS = 2;
+	var STATE_CLEAR = 3;
+	var state = STATE_TITLE;
+
+	var score = 0;
+	var highscore = 0;
+	
+	var kumax = 0;
+	var anikix = 0;
+	var anikiy = 0;
+	var anikivy = 0;
+	var goalx = 0;
+	var goalvx = 0.001;
+	var goal_ix = 1;
+	var kumavx = 0;
+	var ANIKI_IVY = .045;
+	var ANIKI_G = .001;
+	var delayt = 0;
+	var setDelay = function(msec) {
+		delayt = new Date().getTime() + msec;
+	};
+	
+	var tap = function() {
+		if (new Date().getTime() < delayt)
+			return;
+		if (state == STATE_TITLE) {
+			state = STATE_GAME;
+			score = 0;
+			anikix = 0.1;
+			anikiy = 0;
+			anikivy = 0;
+			kumavx = 0.05;
+			kumax = -0.1;
+			goalx = goal_ix;
+		} else if (state == STATE_GAME) {
+			if (anikiy == 0) {
+				anikivy = ANIKI_IVY;
+				anikiy += anikivy;
+			}
+		} else if (state == STATE_MISS || state == STATE_CLEAR) {
+			state = STATE_TITLE;
+		}
+	};
+	canvas.onclick = tap;
+	canvas.ontouchdown = top;
+	
+	var loadImage = function(s) {
+		var img = new Image();
+		img.src = s;
+		return img;
+	};
+	var anikirun = loadImage("aniki_run.png");
+	var anikimiss = loadImage("aniki_miss.png");
+	var anikihi = loadImage("aniki_hi.png");
+	var goal = loadImage("goal.png");
+	var kuma = loadImage("kuma.png");
+	
+	g.draw = function() {
+		tick();
+	};
+	var tick = function() {
+		canvas.width = window.innerWidth;
+		canvas.height = window.innerHeight + 1;
+		g.cw = canvas.width;
+		g.ch = canvas.height;
+		
+		var gw = g.cw;
+		var gh = g.ch;
+		
+		g.setColor(255, 255, 255);
+		g.fillRect(0, 0, gw, gh);
+		g.setColor(69, 188, 70);
+		var gndh = gh / 3 * 2;
+		g.fillRect(0, gndh, gw, gh / 3);
+		
+		var putImage = function(img, x, y) {
+			var iw = img.width / 2;
+			var ih = img.height / 2;
+			g.drawImage(img, x - iw / 4, y - ih / 2, iw / 2, ih / 2);
+		};
+		
+		if (state == STATE_TITLE) {
+			g.setColor(25, 25, 25);
+			g.font = "normal 40px monospace";
+			var s = "ANIKI RUN";
+			var met = g.measureText(s);
+			g.fillText(s, (gw - met.width) / 2 >> 0, (gh / 4 >> 0) - 20);
+			
+			g.font = "normal 12px monospace";
+			var s = "ver 0.9.0";
+			var met = g.measureText(s);
+			g.fillText(s, (gw - met.width) / 2 >> 0, (gh / 4 >> 0) + 0);
+			
+			g.font = "normal 22px monospace";
+			var s = "TAP TO START";
+			var met = g.measureText(s);
+			g.fillText(s, (gw - met.width) / 2 >> 0, (gh / 4 >> 0) + 30);
+			
+			putImage(anikirun, gw / 4, gndh);
+			putImage(kuma, gw / 2, gndh);
+			putImage(goal, gw / 4 * 3, gndh);
+		} else if (state == STATE_GAME) {
+			putImage(anikirun, anikix * gw, gndh - anikiy * gh / 3);
+			putImage(kuma, kumax * gw, gndh);
+			putImage(goal, goalx * gw, gndh);
+			
+			if (anikiy > 0) {
+				anikiy += anikivy;
+				anikivy -= ANIKI_G;
+				if (anikiy <= 0) {
+					anikiy = 0;
+				}
+			}
+			
+			kumax -= kumavx;
+			if (kumax < -0.1) {
+				kumax = 1.2;
+				kumavx = (rnd(3) + 1) / 300;
+			}
+			if (Math.abs(anikix - kumax) < 0.05 && anikiy == 0) {
+				state = STATE_MISS;
+				setDelay(500);
+			}
+			goalx -= goalvx;
+			if (goalx < 0.2) {
+				state = STATE_CLEAR;
+				goal_ix++;
+				setDelay(500);
+			}
+			score++;
+		} else if (state == STATE_CLEAR) {
+			g.setColor(69, 188, 70);
+			g.font = "normal 40px monospace";
+			var s = "CONGRATULATIONS!";
+			var met = g.measureText(s);
+			g.fillText(s, (gw - met.width) / 2 >> 0, (gh / 4 >> 0) - 20);
+			
+			putImage(kuma, kumax * gw, gndh);
+			putImage(anikihi, anikix * gw, gndh - anikiy * gh / 3);
+			putImage(goal, goalx * gw, gndh);
+		} else if (state == STATE_MISS) {
+			g.setColor(215, 25, 25);
+			g.font = "normal 40px monospace";
+			var s = "GAME OVER!";
+			var met = g.measureText(s);
+			g.fillText(s, (gw - met.width) / 2 >> 0, (gh / 4 >> 0) - 20);
+			
+			putImage(kuma, kumax * gw, gndh);
+			putImage(anikimiss, anikix * gw, gndh - anikiy * gh / 3);
+			putImage(goal, goalx * gw, gndh);
+		}
+		if (score >= highscore)
+			highscore = score;
+		g.setColor(0, 0, 0);
+		g.font = "normal 20px monospace";
+		var s = "SCORE: " + addComma(score) + " HIGH SCORE: " + addComma(highscore);
+		var met = g.measureText(s);
+		g.fillText(s, 10, 10 + 20);
+		
+		setTimeout(tick, 15);
+	};
+	g.init();
+	tick();
+};
+</script>
+<style>
+body {
+	margin: 0px;
+}
+#canvas {
+	cursor: default;
+}
+#main {
+	text-align: center;
+}
+a {
+	color: gray !important;
+}
+</style>
+</head>
+<body>
+
+<div id="main"><canvas id="canvas"></canvas><br></div>
+
+<div id="src">
+APP： CC BY <a href=http://fukuno.jig.jp/1686 target=_blank>fukuno.jig.jp</a> <a href=https://github.com/codeforfukui/anikirun/>src on GitHub</a><br>
+</div>
+
+</body>
+</html>
