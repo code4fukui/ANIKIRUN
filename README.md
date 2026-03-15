@@ -1,6 +1,8 @@
 # ANIKIRUN
 
-A jump game using ANIKI at Ikeda, Fukui prefecture.
+> 日本語のREADMEはこちらです: [README.ja.md](README.ja.md)
+
+A jump game featuring ANIKI at Ikeda, Fukui prefecture.
 
 ## Demo
 http://codeforfukui.github.io/ANIKIRUN/
