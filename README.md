@@ -22,4 +22,4 @@ http://codeforfukui.github.io/ANIKIRUN/
 This project does not use any external data or APIs.
 
 ## License
-This project is licensed under the [Creative Commons Attribution (CC BY) license](http://codeforfukui.github.io/ANIKIRUN/).
+Creative Commons Attribution (CC BY) license
